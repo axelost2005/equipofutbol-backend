@@ -1,5 +1,8 @@
 generator client {
   provider = "prisma-client-js"
+  //se genera dentro del codigo fuente (no en node_modules/.prisma) para que
+  //el tracer de Vercel incluya el cliente en el bundle de la funcion serverless
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
