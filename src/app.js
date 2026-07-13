@@ -14,10 +14,19 @@ const allowedOrigins = process.env.FRONTEND_URL
   ? process.env.FRONTEND_URL.split(",").map((origin) => origin.trim()).filter(Boolean)
   : null;
 
+//el frontend en Vercel cambia de subdominio en cada deploy (previews con hash),
+//asi que ademas de la lista blanca se aceptan los despliegues *.vercel.app
+const isVercelDeploy = (origin) => /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin);
+//y localhost, para desarrollar el frontend local contra este backend
+const isLocalhost = (origin) => /^http:\/\/localhost(:\d+)?$/i.test(origin);
+
 const corsOptions = {
   origin: (origin, callback) => {
     //sin lista blanca (dev) o requests sin origin (curl, Postman) -> se permiten
-    if (!allowedOrigins || !origin || allowedOrigins.includes(origin)) {
+    if (!allowedOrigins || !origin) {
+      return callback(null, true);
+    }
+    if (allowedOrigins.includes(origin) || isVercelDeploy(origin) || isLocalhost(origin)) {
       return callback(null, true);
     }
     return callback(new Error("Origen no permitido por CORS"));
