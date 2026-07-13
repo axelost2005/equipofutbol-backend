@@ -30,22 +30,25 @@ const getTeamById = asyncHandler(async (req, res) => {
   return res.status(200).json(team);
 });
 const createTeam = asyncHandler(async (req, res) => {
-  const validName = await teamsService.getTeamByName(req.body.name);
-  if(validName){
-    return res.status(409).json({
-      error: 'Equipo ya ingresado',
-    });
-  }
-  const validation = await teamValidation.validateTeam(req.body);
+  //validar primero: si el body es invalido, ni consultamos duplicados
+  //(con name undefined el chequeo de duplicado daba un falso 409)
+  const validation = teamValidation.validateTeam(req.body);
   if (!validation.isValid) {
     return res.status(400).json({
       error: 'Datos equipo invalidos',
       details: validation.errors,
     });
   }
+  const validName = await teamsService.getTeamByName(req.body.name);
+  if(validName){
+    return res.status(409).json({
+      error: 'Equipo ya ingresado',
+    });
+  }
   const creado = await teamsService.createTeam(req.body);
   return res.status(201).json(creado);
 });
+//PUT /api/equipos/:id -> reemplazo total: exige todos los campos obligatorios
 const updateTeam = asyncHandler(async (req, res) => {
   const id = req.params.id;
   const validation = teamValidation.validateTeam(req.body);
@@ -56,6 +59,24 @@ const updateTeam = asyncHandler(async (req, res) => {
     });
   }
   const updatedTeam = await teamsService.updateTeam( id ,req.body);
+  if (!updatedTeam) {
+    return res.status(404).json({
+      error: "Equipo no encontrado"
+    });
+  }
+  return res.status(200).json(updatedTeam);
+});
+//PATCH /api/equipos/:id -> actualizacion parcial: valida solo los campos enviados
+const patchTeam = asyncHandler(async (req, res) => {
+  const id = req.params.id;
+  const validation = teamValidation.validateTeamPartial(req.body);
+  if (!validation.isValid) {
+    return res.status(400).json({
+      error: "Datos inválidos",
+      details: validation.errors
+    });
+  }
+  const updatedTeam = await teamsService.updateTeam(id, req.body);
   if (!updatedTeam) {
     return res.status(404).json({
       error: "Equipo no encontrado"
@@ -75,4 +96,4 @@ const deleteTeam = asyncHandler(async (req,res) => {
   return res.status(200).json({ message: "Equipo eliminado correctamente" });
 });
 
-module.exports = { getTeams, getTeamById, createTeam , updateTeam, deleteTeam};
+module.exports = { getTeams, getTeamById, createTeam , updateTeam, patchTeam, deleteTeam};

@@ -10,8 +10,10 @@ router.get("/", teamsController.getTeams);
 router.get('/:id', teamsController.getTeamById);
 //POST /api/equipos/ -> ingresar un equipo nuevo 
 router.post('/', teamsController.createTeam);
-//PUT /api/equipos/:id -> actualizar equipo por id 
+//PUT /api/equipos/:id -> reemplazo total del equipo por id
 router.put("/:id", teamsController.updateTeam);
+//PATCH /api/equipos/:id -> actualizacion parcial del equipo por id
+router.patch("/:id", teamsController.patchTeam);
 //DELETE /api/equipos/:id -> eliminar equipo por id s
 router.delete("/:id", teamsController.deleteTeam);
 
