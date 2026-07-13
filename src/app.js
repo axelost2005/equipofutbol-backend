@@ -4,6 +4,7 @@
 const express = require("express");
 const cors = require("cors");
 const teamsRoutes = require("./routes/teams.routes");
+const { notFound, errorHandler } = require("./middlewares/errorHandler");
 //activar CORS para permitir solicitudes desde el frontend
 const app = express();
 //permite recibir JSON en el body de las solicitudes
@@ -18,5 +19,9 @@ app.get("/api/health", (req, res) => {
 });
 //monta las rutas de equipos bajo /api/equipos
 app.use("/api/equipos", teamsRoutes);
+//404 en JSON para cualquier ruta no definida
+app.use(notFound);
+//manejo de errores centralizado (siempre al final de la cadena de middlewares)
+app.use(errorHandler);
 //exporta la app para usarla de index.js
 module.exports = app;
