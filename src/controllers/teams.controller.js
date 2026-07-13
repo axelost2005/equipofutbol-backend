@@ -9,7 +9,8 @@ const getTeams = asyncHandler(async (req, res) => {
   const parsedPage = parseInt(req.query.page, 10);
   const parsedLimit = parseInt(req.query.limit, 10);
   const page = Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1;
-  const limit = Number.isInteger(parsedLimit) && parsedLimit > 0 ? parsedLimit : 8;
+  //limit por defecto 8, tope 50 para que nadie pida la base entera de una sola vez
+  const limit = Number.isInteger(parsedLimit) && parsedLimit > 0 ? Math.min(parsedLimit, 50) : 8;
   const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
 
   const teams = await teamsService.getTeams({ page, limit, search });

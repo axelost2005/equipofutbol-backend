@@ -8,12 +8,26 @@ const getTeams = async ({ page, limit, search }) => {
     ? { name: { contains: search, mode: "insensitive" } }
     : {};
 
-  return prisma.team.findMany({
-    where,
-    skip: (page - 1) * limit,
-    take: limit,
-    orderBy: { name: "asc" },
-  });
+  //la pagina de datos y el total corren en paralelo para no encadenar dos round-trips
+  const [data, total] = await Promise.all([
+    prisma.team.findMany({
+      where,
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { name: "asc" },
+    }),
+    prisma.team.count({ where }),
+  ]);
+
+  return {
+    data,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
 };
 const getTeamById = async (id) => {
   return prisma.team.findUnique({
