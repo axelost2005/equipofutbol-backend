@@ -5,10 +5,27 @@ const express = require("express");
 const cors = require("cors");
 const teamsRoutes = require("./routes/teams.routes");
 const { notFound, errorHandler } = require("./middlewares/errorHandler");
-//activar CORS para permitir solicitudes desde el frontend
+
 const app = express();
+
+//CORS: si FRONTEND_URL esta definida, solo se permiten esos origenes
+//(varios separados por coma); si no esta, se permite todo (comodo en dev).
+const allowedOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(",").map((origin) => origin.trim()).filter(Boolean)
+  : null;
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    //sin lista blanca (dev) o requests sin origin (curl, Postman) -> se permiten
+    if (!allowedOrigins || !origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Origen no permitido por CORS"));
+  },
+};
+
+app.use(cors(corsOptions));
 //permite recibir JSON en el body de las solicitudes
-app.use(cors());
 app.use(express.json());
 //define la ruta GET /api/health para verificar que la API está funcionando
 app.get("/api/health", (req, res) => {
